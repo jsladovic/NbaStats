@@ -17,7 +17,7 @@ namespace NbaStats
 
             if (urlNodes.Count == 0)
                 throw new Exception($"no player nodes in scoring event");
-            ShootingPlayer = EventFactory.GetPlayerIdFromUrlNode(urlNodes[0]);
+            ShootingPlayer = EventFactory.GetLinkFromUrlNode(urlNodes[0]);
         }
     }
 
@@ -42,9 +42,9 @@ namespace NbaStats
             if (urlNodes.Count == 1)
                 return;
             if (text.Contains("assist"))
-                AssistingPlayer = EventFactory.GetPlayerIdFromUrlNode(urlNodes[1]);
+                AssistingPlayer = EventFactory.GetLinkFromUrlNode(urlNodes[1]);
             else if (text.Contains("block"))
-                BlockingPlayer = EventFactory.GetPlayerIdFromUrlNode(urlNodes[1]);
+                BlockingPlayer = EventFactory.GetLinkFromUrlNode(urlNodes[1]);
             else
                 throw new Exception($"unknown 2nd player role in shooting event");
         }

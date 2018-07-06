@@ -16,10 +16,12 @@ namespace NbaStats
 
         public List<Event> Events;
         public bool Playoffs;
+        public DateTime Date;
 
-        public Match(bool playoffs = false)
+        public Match(DateTime date, bool playoffs)
         {
             Playoffs = playoffs;
+            Date = date;
             Events = new List<Event>();
         }
 
@@ -68,7 +70,7 @@ namespace NbaStats
 
         public override string ToString()
         {
-            return $"{HomeTeam} {HomePoints}:{AwayPoints} {AwayTeam}";
+            return $"{Date} {HomeTeam} {HomePoints}:{AwayPoints} {AwayTeam}";
         }
     }
 
@@ -79,7 +81,6 @@ namespace NbaStats
 
         public int Points;
         public bool DidNotPlay;
-        public bool Inactive;
 
         public Player(string name)
         {
@@ -88,12 +89,10 @@ namespace NbaStats
 
         public override string ToString()
         {
-            if (!Played)
-                return $"{Name} {(Inactive ? "was inactive" : "did not play")}\t{Id}";
+            if (DidNotPlay)
+                return $"{Name} did not play\t{Id}";
 
             return $"{Name}\t{Points} points\t{Id}";
         }
-
-        public bool Played => !DidNotPlay && !Inactive;
     }
 }

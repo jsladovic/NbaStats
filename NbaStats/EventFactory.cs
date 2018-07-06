@@ -7,6 +7,10 @@ namespace NbaStats
     {
         private const string EmptyString = "&nbsp;";
 
+        // todo delete
+        //public static int homePoints = 0;
+        //public static int awayPoints = 0;
+
         public static Event ParseEvent(HtmlNode node, int quarter)
         {
             HtmlNodeCollection nodes = node.SelectNodes("td");
@@ -24,7 +28,16 @@ namespace NbaStats
 
             Event matchEvent = GetEvent(text, urlNodes, type);
             matchEvent.SetEventDetails(team, type, quarter, eventTime);
-            //Console.WriteLine(matchEvent);
+            /* todo delete
+             * if (matchEvent is ScoringEvent && (matchEvent as ScoringEvent).Made)
+            {
+                if (team == EventTeam.Home)
+                    homePoints += (matchEvent as ScoringEvent).Points;
+                else if (team == EventTeam.Away)
+                    awayPoints += (matchEvent as ScoringEvent).Points;
+                Console.WriteLine($"{homePoints}:{awayPoints}");
+                Console.ReadLine();
+            }*/
             return matchEvent;
         }
 
@@ -129,11 +142,11 @@ namespace NbaStats
             return node.InnerText.ToLower();
         }
 
-        public static string GetPlayerIdFromUrlNode(HtmlNode node)
+        public static string GetLinkFromUrlNode(HtmlNode node)
         {
             string href = node.GetAttributeValue("href", null);
             if (href == null)
-                throw new Exception($"unable to parse player url");
+                throw new Exception($"unable to find url");
 
             return href;
         }

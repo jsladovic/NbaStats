@@ -7,8 +7,8 @@ namespace NbaStats
     {
         static void Main(string[] args)
         {
-            Match match = MatchParser.ParseMatch("201710170CLE");
-            Console.WriteLine(match);
+            Season season = SeasonParser.ParseSeason("2018");
+            //Match m = MatchParser.ParseMatch("201710210UTA", DateTime.Today, false);
 
             Console.ReadLine();
         }
