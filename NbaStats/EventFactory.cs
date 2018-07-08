@@ -14,6 +14,8 @@ namespace NbaStats
         public static Event ParseEvent(HtmlNode node, int quarter)
         {
             HtmlNodeCollection nodes = node.SelectNodes("td");
+            if (nodes.Count < 2)
+                return null;
 
             float eventTime = EventTime(nodes[0].InnerText);
             EventTeam team = GetEventTeam(nodes);

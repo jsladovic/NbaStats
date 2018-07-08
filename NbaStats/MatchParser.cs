@@ -24,10 +24,12 @@ namespace NbaStats
             Match match = ParseMatchBoxScore(web, matchId, date, playoffs);
             match.Events = ParseMatchPlayByPlay(web, matchId);
             if (!match.CheckScore())
-                throw new Exception($"incorrect match score {match.HomePoints}:{match.AwayPoints} instead of {match.HomeScore}:{match.AwayScore}");
+                Console.WriteLine($"incorrect match score {match.HomePoints}:{match.AwayPoints} instead of {match.HomeScore}:{match.AwayScore}");
+                //throw new Exception($"incorrect match score {match.HomePoints}:{match.AwayPoints} instead of {match.HomeScore}:{match.AwayScore}");
             string invalidPlayerId = match.CheckPlayerScores();
             if (invalidPlayerId != null)
-                throw new Exception($"invalid player score for player {invalidPlayerId}");
+                Console.WriteLine($"invalid player score for player {invalidPlayerId}");
+                //throw new Exception($"invalid player score for player {invalidPlayerId}");
 
             return match;
         }
@@ -39,7 +41,7 @@ namespace NbaStats
 
             HtmlDocument doc = web.Load(bsUrl);
             ParseMatchTeamNamesAndScore(doc, match);
-            
+
             HtmlNodeCollection statsTables = doc.DocumentNode.SelectNodes(statsTablesXpath);
             match.HomePlayers = ParseMatchBoxScore(statsTables[2]);
             match.AwayPlayers = ParseMatchBoxScore(statsTables[0]);
@@ -77,7 +79,7 @@ namespace NbaStats
 
                 if (node.ChildNodes.Count == 2)
                 {
-                    switch(node.ChildNodes[1].InnerText)
+                    switch (node.ChildNodes[1].InnerText)
                     {
                         case "Did Not Play":
                         case "Did Not Dress":
@@ -114,7 +116,9 @@ namespace NbaStats
                 if (node.HasClass("thead"))
                     continue;
 
-                events.Add(EventFactory.ParseEvent(node, currentQuarter));
+                Event matchEvent = EventFactory.ParseEvent(node, currentQuarter);
+                if (matchEvent != null)
+                    events.Add(matchEvent);
             }
 
             return events;

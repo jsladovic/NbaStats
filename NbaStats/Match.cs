@@ -70,7 +70,7 @@ namespace NbaStats
 
         public override string ToString()
         {
-            return $"{Date} {HomeTeam} {HomePoints}:{AwayPoints} {AwayTeam}";
+            return $"{Date}{(Playoffs ? " PO " : "")} {HomeTeam} {HomePoints}:{AwayPoints} {AwayTeam}";
         }
     }
 

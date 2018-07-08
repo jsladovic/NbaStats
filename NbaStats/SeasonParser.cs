@@ -40,6 +40,13 @@ namespace NbaStats
                 if (matchNode.ChildNodes.Count == 0)
                     continue;
 
+                if (matchNode.ChildNodes.Count == 1 && matchNode.ChildNodes[0].InnerText == "Playoffs")
+                {
+                    playoffs = true;
+                    Console.WriteLine("start of playoffs");
+                    continue;
+                }
+
 
                 // todo check for playoffs th
                 Match match = ParseMatch(matchNode, playoffs);
