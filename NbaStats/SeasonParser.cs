@@ -136,5 +136,15 @@ namespace NbaStats
         }
 
         public List<Match> RegularSeasonMatches => Matches.Where(m => !m.Playoffs).ToList();
+
+        public List<Event> AllEvents(bool includePlayoffs = false)
+        {
+            List<Event> events = new List<Event>();
+            foreach (Match match in (includePlayoffs ? Matches : RegularSeasonMatches))
+            {
+                events.AddRange(match.Events);
+            }
+            return events;
+        }
     }
 }
