@@ -1,14 +1,18 @@
 ﻿using HtmlAgilityPack;
 using System;
 using System.Text.RegularExpressions;
+using System.Xml.Serialization;
 
 namespace NbaStats
 {
+    [XmlInclude(typeof(RegularShot)), XmlInclude(typeof(FreeThrow))]
     public class ScoringEvent : Event
     {
         public bool Made;
         public int Points;
         public string ShootingPlayer;
+
+        public ScoringEvent() { }
 
         public ScoringEvent(HtmlNodeCollection urlNodes, bool made, int points)
         {
@@ -28,6 +32,8 @@ namespace NbaStats
         public int Distance;
         public string AssistingPlayer;
         public string BlockingPlayer;
+
+        public RegularShot() { }
 
         public RegularShot(string text, HtmlNodeCollection urlNodes, bool made, int points) : base(urlNodes, made, points)
         {
@@ -63,6 +69,8 @@ namespace NbaStats
         int FreeThrowNumber;
         int OutOfNumber;
         bool Technical;
+
+        public FreeThrow() { }
 
         public FreeThrow(string text, HtmlNodeCollection urlNodes, bool made) : base(urlNodes, made, 1)
         {

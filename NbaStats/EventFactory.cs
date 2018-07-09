@@ -6,11 +6,7 @@ namespace NbaStats
     public class EventFactory
     {
         private const string EmptyString = "&nbsp;";
-
-        // todo delete
-        //public static int homePoints = 0;
-        //public static int awayPoints = 0;
-
+        
         public static Event ParseEvent(HtmlNode node, int quarter)
         {
             HtmlNodeCollection nodes = node.SelectNodes("td");
@@ -30,16 +26,6 @@ namespace NbaStats
 
             Event matchEvent = GetEvent(text, urlNodes, type);
             matchEvent.SetEventDetails(team, type, quarter, eventTime);
-            /* todo delete
-             * if (matchEvent is ScoringEvent && (matchEvent as ScoringEvent).Made)
-            {
-                if (team == EventTeam.Home)
-                    homePoints += (matchEvent as ScoringEvent).Points;
-                else if (team == EventTeam.Away)
-                    awayPoints += (matchEvent as ScoringEvent).Points;
-                Console.WriteLine($"{homePoints}:{awayPoints}");
-                Console.ReadLine();
-            }*/
             return matchEvent;
         }
 

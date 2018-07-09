@@ -1,6 +1,9 @@
 ﻿
+using System.Xml.Serialization;
+
 namespace NbaStats
 {
+    [XmlInclude(typeof(ScoringEvent))]
     public class Event
     {
         public EventTeam Team;

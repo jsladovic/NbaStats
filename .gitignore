@@ -2,3 +2,5 @@
 packages/
 NbaStats/bin/
 NbaStats/obj/
+StatsAnalyzer/bin/
+StatsAnalyzer/obj/

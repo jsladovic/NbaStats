@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace NbaStats
 {
-    class Match
+    public class Match
     {
         public int HomeScore;
         public string HomeTeam;
@@ -17,6 +17,8 @@ namespace NbaStats
         public List<Event> Events;
         public bool Playoffs;
         public DateTime Date;
+
+        public Match() { }
 
         public Match(DateTime date, bool playoffs)
         {
@@ -81,6 +83,8 @@ namespace NbaStats
 
         public int Points;
         public bool DidNotPlay;
+
+        public Player() { }
 
         public Player(string name)
         {
