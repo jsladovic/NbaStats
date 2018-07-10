@@ -19,6 +19,13 @@ namespace NbaStats
             TimeRemaining = timeRemaining;
         }
 
+        public bool FinalMinutes(int numberOfMinutes, bool includeOvertime = false)
+        {
+            if (Quarter == 4 && TimeRemaining <= 60 * numberOfMinutes)
+                return true;
+            return false;
+        }
+
         public override string ToString()
         {
             return $"{Quarter}/{TimeRemaining} - {Team} - {Type}";

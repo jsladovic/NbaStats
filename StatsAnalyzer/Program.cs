@@ -33,6 +33,12 @@ namespace StatsAnalyzer
             MostShotsDuringFinalMinutes(season, 2, false);
             MostFreeThrowsDuringFinalMinutes(season, 2, true);
             MostFreeThrowsDuringFinalMinutes(season, 2, false);
+            //MostMissedShotsWithoutMakingAnyInFinalMInutes(season, 2);
+            BestAssistScoreCombination(season);
+            BestAssistScoreCombination(season, true);
+            BestDuo(season);
+            BestDuo(season, true);
+            BlockedTheMost(season);
             Console.ReadLine();
         }
 
@@ -57,31 +63,83 @@ namespace StatsAnalyzer
             return dic;
         }
 
+        private static void PrintStats(List<PlayerStats> stats, string text)
+        {
+            Console.WriteLine(text);
+            foreach (PlayerStats stat in stats)
+                Console.WriteLine(stat);
+        }
+
+        private static void BlockedTheMost(Season season)
+        {
+            List<PlayerStats> stats = season.AllEvents().Where(e => e is RegularShot && !(e as RegularShot).Made && (e as RegularShot).BlockingPlayer != null).
+                GroupBy(e => (e as RegularShot).ShootingPlayer).Select(g => new PlayerStats { PlayerId = g.Key, Stat = g.Count() }).
+                OrderByDescending(p => p.Stat).Take(10).ToList();
+            PrintStats(stats, "\nPlayers that have been blocked the most:");
+        }
+
+        private static void BestDuo(Season season, bool countPoints = false)
+        {
+            var groupedPoints = season.AllEvents().Where(e => e is RegularShot && (e as RegularShot).Made && (e as RegularShot).AssistingPlayer != null).
+                GroupBy(e => new
+                {
+                    FirstPlayer = string.Compare((e as RegularShot).AssistingPlayer, (e as RegularShot).ShootingPlayer) < 0 ?
+                (e as RegularShot).AssistingPlayer : (e as RegularShot).ShootingPlayer,
+                    SecondPlayer = string.Compare((e as RegularShot).AssistingPlayer, (e as RegularShot).ShootingPlayer) < 0 ?
+                    (e as RegularShot).ShootingPlayer : (e as RegularShot).AssistingPlayer,
+                });
+            List<PlayerStats> stats = groupedPoints.
+                Select(g => new PlayerStats
+                {
+                    PlayerId = g.Key.FirstPlayer,
+                    Player2Id = g.Key.SecondPlayer,
+                    Stat = countPoints ? g.Sum(p => (p as RegularShot).Points) : g.Count()
+                }).OrderByDescending(p => p.Stat).Take(10).ToList();
+            PrintStats(stats, $"\nBest duo {(countPoints ? "(number of points)" : "(number of made shots)")}:");
+
+        }
+
+        private static void BestAssistScoreCombination(Season season, bool countPoints = false)
+        {
+            var groupedPoints = season.AllEvents().Where(e => e is RegularShot && (e as RegularShot).Made && (e as RegularShot).AssistingPlayer != null).
+                GroupBy(e => new { (e as RegularShot).ShootingPlayer, (e as RegularShot).AssistingPlayer });
+            List<PlayerStats> stats = groupedPoints.
+                Select(g => new PlayerStats
+                {
+                    PlayerId = g.Key.AssistingPlayer,
+                    Player2Id = g.Key.ShootingPlayer,
+                    Stat = countPoints ? g.Sum(p => (p as RegularShot).Points) : g.Count()
+                }).OrderByDescending(p => p.Stat).Take(10).ToList();
+            PrintStats(stats, $"\nBest assist -> score combinations {(countPoints ? "(number of points)" : "(number of made shots)")}:");
+        }
+
         private static void MostMissedShotsWithoutMakingAnyInFinalMInutes(Season season, int numberOfMinutes)
         {
-
+            List<Event> allEvents = season.AllEvents();
+            var groupedPoints = allEvents.Where(e => e is RegularShot && !(e as RegularShot).Made && e.FinalMinutes(numberOfMinutes)).
+                GroupBy(e => (e as RegularShot).ShootingPlayer).Where(g => !allEvents.Any(e => e is RegularShot && (e as RegularShot).Made
+                && e.FinalMinutes(numberOfMinutes) && (e as RegularShot).ShootingPlayer == g.Key));
+            List<PlayerStats> stats = groupedPoints.
+                Select(g => new PlayerStats { PlayerId = g.Key, Stat = g.Count() }).OrderByDescending(p => p.Stat).Take(10).ToList();
+            PrintStats(stats, $"\nMost missed shots in final {numberOfMinutes} minutes without making any:");
         }
 
         private static void MostShotsDuringFinalMinutes(Season season, int numberOfMinutes, bool made)
         {
-            var groupedPoints = season.AllEvents().Where(e => e is RegularShot && (e as RegularShot).Made == made && (e as RegularShot).Quarter == 4
-            && (e as RegularShot).TimeRemaining <= 60 * numberOfMinutes).GroupBy(e => (e as RegularShot).ShootingPlayer);
+            var groupedPoints = season.AllEvents().Where(e => e is RegularShot && (e as RegularShot).Made == made && e.FinalMinutes(numberOfMinutes)).
+                GroupBy(e => (e as RegularShot).ShootingPlayer);
             List<PlayerStats> stats = groupedPoints.
-                Select(g => new PlayerStats { Id = g.Key, Stat = g.Count() }).OrderByDescending(p => p.Stat).Take(10).ToList();
-            Console.WriteLine($"\nMost {(made ? "made" : "missed")} shots during final {numberOfMinutes} minutes:");
-            foreach (PlayerStats stat in stats)
-                Console.WriteLine(stat);
+                Select(g => new PlayerStats { PlayerId = g.Key, Stat = g.Count() }).OrderByDescending(p => p.Stat).Take(10).ToList();
+            PrintStats(stats, $"\nMost {(made ? "made" : "missed")} shots during final {numberOfMinutes} minutes:");
         }
 
         private static void MostFreeThrowsDuringFinalMinutes(Season season, int numberOfMinutes, bool made)
         {
-            var groupedPoints = season.AllEvents().Where(e => e is FreeThrow && (e as FreeThrow).Made == made && (e as FreeThrow).Quarter == 4
-            && (e as FreeThrow).TimeRemaining <= 60 * numberOfMinutes).GroupBy(e => (e as FreeThrow).ShootingPlayer);
+            var groupedPoints = season.AllEvents().Where(e => e is FreeThrow && (e as FreeThrow).Made == made && e.FinalMinutes(numberOfMinutes)).
+                GroupBy(e => (e as FreeThrow).ShootingPlayer);
             List<PlayerStats> stats = groupedPoints.
-                Select(g => new PlayerStats { Id = g.Key, Stat = g.Count() }).OrderByDescending(p => p.Stat).Take(10).ToList();
-            Console.WriteLine($"\nMost {(made ? "made" : "missed")} free throws during final {numberOfMinutes} minutes:");
-            foreach (PlayerStats stat in stats)
-                Console.WriteLine(stat);
+                Select(g => new PlayerStats { PlayerId = g.Key, Stat = g.Count() }).OrderByDescending(p => p.Stat).Take(10).ToList();
+            PrintStats(stats, $"\nMost {(made ? "made" : "missed")} free throws during final {numberOfMinutes} minutes:");
         }
 
         private static void PlayersWithMostUnassistedPoints(Season season)
@@ -89,20 +147,16 @@ namespace StatsAnalyzer
             var groupedPoints = season.AllEvents().Where(e => e is RegularShot && (e as RegularShot).Made && (e as RegularShot).AssistingPlayer == null).
                 GroupBy(e => (e as RegularShot).ShootingPlayer);
             List<PlayerStats> stats = groupedPoints.
-                Select(g => new PlayerStats { Id = g.Key, Stat = g.Sum(p => (p as RegularShot).Points) }).OrderByDescending(p => p.Stat).Take(10).ToList();
-            Console.WriteLine("\nMost unassisted points during the regular season:");
-            foreach (PlayerStats stat in stats)
-                Console.WriteLine(stat);
+                Select(g => new PlayerStats { PlayerId = g.Key, Stat = g.Sum(p => (p as RegularShot).Points) }).OrderByDescending(p => p.Stat).Take(10).ToList();
+            PrintStats(stats, "\nMost unassisted points during the regular season:");
         }
 
         private static void PlayersWithMostPoints(Season season)
         {
             var groupedPoints = season.AllEvents().Where(e => e is ScoringEvent && (e as ScoringEvent).Made).GroupBy(e => (e as ScoringEvent).ShootingPlayer);
             List<PlayerStats> stats = groupedPoints.
-                Select(g => new PlayerStats { Id = g.Key, Stat = g.Sum(p => (p as ScoringEvent).Points) }).OrderByDescending(p => p.Stat).Take(10).ToList();
-            Console.WriteLine("\nMost points during the regular season:");
-            foreach (PlayerStats stat in stats)
-                Console.WriteLine(stat);
+                Select(g => new PlayerStats { PlayerId = g.Key, Stat = g.Sum(p => (p as ScoringEvent).Points) }).OrderByDescending(p => p.Stat).Take(10).ToList();
+            PrintStats(stats, "\nMost points during the regular season:");
         }
     }
 
@@ -110,13 +164,16 @@ namespace StatsAnalyzer
     {
         public static Dictionary<string, string> Players;
 
-        public string Id;
+        public string PlayerId;
+        public string Player2Id;
         public int Stat;
-        public int OtherStat;
 
         public override string ToString()
         {
-            return $"{Players[Id]} - {(Stat == 0 && OtherStat != 0 ? OtherStat : Stat)}";
+            if (string.IsNullOrEmpty(Player2Id))
+                return $"{Players[PlayerId]} - {Stat}";
+
+            return $"{Players[PlayerId]} - {Players[Player2Id]} - {Stat}";
         }
     }
 }
