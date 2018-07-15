@@ -30,6 +30,12 @@ namespace NbaStats
         {
             return $"{Quarter}/{TimeRemaining} - {Team} - {Type}";
         }
+
+        public bool IsMadeShot => (this is ScoringEvent) && (this as ScoringEvent).Made;
+
+        public int QuarterMinutes => Quarter <= 4 ? 12 : 5;
+
+        public int MinuteOfEvent => (int)((Quarter - 1) * 12 + (QuarterMinutes * 60 - TimeRemaining) / 60) + (TimeRemaining == 0.0 ? 0 : 1);
     }
 
     public enum EventTeam

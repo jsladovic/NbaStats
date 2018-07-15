@@ -1,8 +1,10 @@
 ﻿using NbaStats;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms.DataVisualization.Charting;
 using System.Xml.Serialization;
 
 namespace StatsAnalyzer
@@ -27,19 +29,57 @@ namespace StatsAnalyzer
 
             PlayerStats.Players = GetAllPlayerIds(season);
 
-            PlayersWithMostPoints(season);
-            PlayersWithMostUnassistedPoints(season);
-            MostShotsDuringFinalMinutes(season, 2, true);
-            MostShotsDuringFinalMinutes(season, 2, false);
-            MostFreeThrowsDuringFinalMinutes(season, 2, true);
-            MostFreeThrowsDuringFinalMinutes(season, 2, false);
+            List<PlayerStats> topScorers = GetTopScorers(season, 20);
+            foreach (PlayerStats topScorer in topScorers)
+                PrintPlayerShotChart(season, topScorer.PlayerId);
+
+            #region Printing player stats
+
+            //PlayersWithMostPoints(season);
+            //PlayersWithMostUnassistedPoints(season);
+            //MostShotsDuringFinalMinutes(season, 2, true);
+            //MostShotsDuringFinalMinutes(season, 2, false);
+            //MostFreeThrowsDuringFinalMinutes(season, 2, true);
+            //MostFreeThrowsDuringFinalMinutes(season, 2, false);
             //MostMissedShotsWithoutMakingAnyInFinalMInutes(season, 2);
-            BestAssistScoreCombination(season);
-            BestAssistScoreCombination(season, true);
-            BestDuo(season);
-            BestDuo(season, true);
-            BlockedTheMost(season);
+            //BestAssistScoreCombination(season);
+            //BestAssistScoreCombination(season, true);
+            //BestDuo(season);
+            //BestDuo(season, true);
+            //BlockedTheMost(season);
+
+            #endregion
+
             Console.ReadLine();
+        }
+
+        private static void PrintPlayerShotChart(Season season, string playerId)
+        {
+            List<Event> madeShotsForPlayer = season.AllEvents().Where(e => e.IsMadeShot && (e as ScoringEvent).ShootingPlayer == playerId && e.Quarter <= 4).ToList();
+            var shotsGroupedByMinutes = madeShotsForPlayer.GroupBy(e => e.MinuteOfEvent).OrderBy(g => g.Key).ToList();
+
+            Console.WriteLine(PlayerStats.Players[playerId]);
+            Chart chart = new Chart();
+            chart.Size = new Size(1024, 512);
+            chart.Palette = ChartColorPalette.SeaGreen;
+            chart.Titles.Add(PlayerStats.Players[playerId]);
+
+            ChartArea chartArea = new ChartArea();
+            chartArea.AxisX.MajorGrid.LineColor = Color.LightGray;
+            chartArea.AxisY.MajorGrid.LineColor = Color.LightGray;
+            chartArea.AxisX.LabelStyle.Font = new Font("Consolas", 8);
+            chartArea.AxisY.LabelStyle.Font = new Font("Consolas", 8);
+            chartArea.AxisX.Interval = 12;
+            chartArea.AxisY.Maximum = 80;
+            chart.ChartAreas.Add(chartArea);
+            Series series = new Series();
+
+            foreach (var minutes in shotsGroupedByMinutes)
+                series.Points.AddXY(minutes.Key, minutes.Count());
+
+            chart.Series.Add(series);
+            chart.Invalidate();
+            chart.SaveImage($"./{PlayerStats.Players[playerId].Replace(' ', '_')}.png", ChartImageFormat.Png);
         }
 
         private static Dictionary<string, string> GetAllPlayerIds(Season season)
@@ -63,11 +103,20 @@ namespace StatsAnalyzer
             return dic;
         }
 
+        #region Printing player stats methods
+
         private static void PrintStats(List<PlayerStats> stats, string text)
         {
             Console.WriteLine(text);
             foreach (PlayerStats stat in stats)
                 Console.WriteLine(stat);
+        }
+
+        private static List<PlayerStats> GetTopScorers(Season season, int numberOfPlayers)
+        {
+            var groupedPoints = season.AllEvents().Where(e => e is ScoringEvent && (e as ScoringEvent).Made).GroupBy(e => (e as ScoringEvent).ShootingPlayer);
+            return groupedPoints.Select(g => new PlayerStats
+            { PlayerId = g.Key, Stat = g.Sum(p => (p as ScoringEvent).Points) }).OrderByDescending(p => p.Stat).Take(numberOfPlayers).ToList();
         }
 
         private static void BlockedTheMost(Season season)
@@ -153,11 +202,10 @@ namespace StatsAnalyzer
 
         private static void PlayersWithMostPoints(Season season)
         {
-            var groupedPoints = season.AllEvents().Where(e => e is ScoringEvent && (e as ScoringEvent).Made).GroupBy(e => (e as ScoringEvent).ShootingPlayer);
-            List<PlayerStats> stats = groupedPoints.
-                Select(g => new PlayerStats { PlayerId = g.Key, Stat = g.Sum(p => (p as ScoringEvent).Points) }).OrderByDescending(p => p.Stat).Take(10).ToList();
-            PrintStats(stats, "\nMost points during the regular season:");
+            PrintStats(GetTopScorers(season, 10), "\nMost points during the regular season:");
         }
+
+        #endregion
     }
 
     public class PlayerStats
