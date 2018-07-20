@@ -70,12 +70,22 @@ namespace StatsAnalyzer
             chartArea.AxisX.LabelStyle.Font = new Font("Consolas", 8);
             chartArea.AxisY.LabelStyle.Font = new Font("Consolas", 8);
             chartArea.AxisX.Interval = 12;
-            chartArea.AxisY.Maximum = 80;
+            chartArea.AxisY.Maximum = 120;
             chart.ChartAreas.Add(chartArea);
             Series series = new Series();
 
             foreach (var minutes in shotsGroupedByMinutes)
-                series.Points.AddXY(minutes.Key, minutes.Count());
+                series.Points.AddXY(minutes.Key, minutes.Sum(e => (e as ScoringEvent).Points));
+                
+            foreach (var point in series.Points)
+                if (point.XValue <= 12)
+                    point.Color = Color.Blue;
+                else if (point.XValue <= 24)
+                    point.Color = Color.Pink;
+                else if (point.XValue <= 36)
+                    point.Color = Color.Green;
+                else
+                    point.Color = Color.Red;
 
             chart.Series.Add(series);
             chart.Invalidate();
